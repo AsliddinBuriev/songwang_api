@@ -9,7 +9,7 @@ const cors = require('cors')
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(__dirname + '/public'));
-app.use(cors())
+app.use(cors());
 
 // output router
 const outputRouter = require("./routes/outputRouter");

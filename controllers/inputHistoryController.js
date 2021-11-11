@@ -9,7 +9,7 @@ const formatDate = (date) => {
   return `${format[0].padStart(2, "0")}-${format[1].toUpperCase()}-${format[2]}`
 }
 
-/*******  GET TRANSACTION *******/
+/*******  GET TRANSACTION  HISTORY  *******/
 exports.getInputHistory = catchAsyncErr(async (req, res, next) => {
   const { from, to, driver_name } = { ...req.query }
 

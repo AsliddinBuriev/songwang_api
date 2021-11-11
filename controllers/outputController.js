@@ -1,16 +1,11 @@
-const fs = require("fs");
-const path = require("path");
-const qr = require("qrcode");
-const pngToJpeg = require("png-to-jpeg");
-const { msg, config } = require("coolsms-node-sdk");
 const connection = require("../models/configdb");
 const catchAsyncErr = require('./../utils/catchAsyncErr');
 const AppError = require("../utils/appError");
+const sendQr = require("../utils/sendQr")
 
 /*******  GET REQUEST *******/
 exports.getOutput = catchAsyncErr(async (req, res, next) => {
   const { bl_num } = { ...req.query };
-
   //query output table 
   const db = await connection;
   const data = await db.execute(
@@ -27,6 +22,7 @@ exports.getOutput = catchAsyncErr(async (req, res, next) => {
 
 /*******  PATCH REQUEST *******/
 exports.updateOutput = async (req, res, next) => {
+  const db = await connection;
   //destruct data req.body
   const {
     bl_num, company_name, quantity, unit, driver_name, phone_num, car_num
@@ -34,30 +30,34 @@ exports.updateOutput = async (req, res, next) => {
 
   //generate random transaction_id
   const transaction_id = `${Math.floor(Math.random() * 100 + 1)}${Date.now()}`
-
   const binds = []
-  let updateStr = '';
+
+  // 1.update output table
   for (let i = 0; i < bl_num.length; i++) {
-    // make updateSTR
-    console.log(quantity[i]);
-    updateStr += `when bl_num = '${bl_num[i]}' 
-      and (quantity - '${quantity[i]}') >= 0 
-      then (quantity - '${quantity[i]}')\n`;
+    //check if update request is OK
+    const doesExist = await db.execute(
+      `SELECT quantity FROM output 
+      WHERE bl_num = '${bl_num[i]}' 
+      AND company_name = '${company_name[i]}'
+      AND unit = '${unit[i]}' 
+      AND (quantity - '${quantity[i]}') >= 0`)
+
+    //if not OK send error message
+    if (doesExist.rows.length === 0) {
+      return next(new AppError('생산 정보를 잘못 입력했습니다. 다시 시도하십시오!', 400));
+    }
+
+    //if OK update output table
+    await db.execute(
+      `UPDATE output 
+      SET quantity = quantity - '${quantity[i]}'
+      WHERE bl_num = '${bl_num[i]}'`);
 
     // make binds data 
     binds.push({
       driver_name, phone_num, car_num, transaction_id, bl_num: bl_num[i], quantity: quantity[i], unit: unit[i], dt: new Date(Date.now())
     })
   }
-  // console.log(updateStr);
-
-  //1.update output table
-  const db = await connection;
-  const update = await db.execute(
-    `update output set quantity =(
-      case ${updateStr} 
-      else quantity
-      end)`);
 
   //2.save transaction into output_history table
   const insert = `INSERT INTO output_history VALUES(
@@ -66,46 +66,19 @@ exports.updateOutput = async (req, res, next) => {
   const history = await db.executeMany(insert, binds, { autoCommit: false });
 
   //3.send qr code to phone_number
+  const transactionLink = `http://${req.hostname}:3000/output/${transaction_id}`
+  const result = await sendQr(transactionLink, transaction_id, next, phone_num)
 
-  //a.generate qrcode
-  const qrImageLink = await qr.toDataURL(`http://${req.hostname}:3000/output/${transaction_id}`);
-  //b. generate jpeg file
-  const buffer = Buffer.from(qrImageLink.split(/,\s*/)[1], "base64");
-  const qrImage = await pngToJpeg({ quality: 90 })(buffer);
-  fs.writeFileSync(`${__dirname}/${transaction_id}.jpeg`, qrImage);
-
-  //c. send qr code
-  //coolsms-node-sdk config
-  // config.init({
-  //   apiKey: process.env.APIKEY,
-  //   apiSecret: process.env.APISECRET,
-  // });
-  // const { fileId } = await msg.uploadMMSImage(
-  //   path.join(__dirname, `${transaction_id}.jpeg`)
-  // );
-  // const result = await msg.send({
-  //   messages: [
-  //     {
-  //       to: `${phone_num}`,
-  //       from: "01087128235",
-  //       subject: `출고증`,
-  //       imageId: fileId,
-  //       text: `QR 코드를 스캔하여 출고증 인쇄하십시오.`,
-  //     },
-  //   ],
-  // });
-  // d. if(!err) => delete saved file and commit chages 
-  // if (result) {
-  //   fs.unlinkSync(path.join(__dirname, `${transaction_id}.jpeg`));
-  //   db.commit()
-  // }
-  fs.unlinkSync(path.join(__dirname, `${transaction_id}.jpeg`));
-  db.commit();
-  res.status(200).json({
-    status: 'success',
-  })
+  if (result) {
+    //4. commit changes to database
+    db.commit();
+    //5. send response 
+    res.status(200).json({
+      status: 'success',
+      message: '요청이 완료되었습니다!'
+    })
+  }
 }
-
 
 /*******  GET TRANSACTION *******/
 exports.getTransaction = catchAsyncErr(async (req, res, next) => {
@@ -121,6 +94,7 @@ exports.getTransaction = catchAsyncErr(async (req, res, next) => {
     return next(new AppError('No transaction is found', 404));
   }
 
+  //restructure raw data 
   const data = {
     transaction_info: {
       driver_name: result.rows[0].DRIVER_NAME,

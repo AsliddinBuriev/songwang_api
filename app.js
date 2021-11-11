@@ -4,12 +4,20 @@ const bodyParser = require("body-parser");
 const app = express();
 const AppError = require('./utils/appError')
 const globalErrorHandler = require('./controllers/errorController')
-const cors = require('cors')
+// const cors = require('cors')
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(__dirname + '/public'));
-app.use(cors());
+// app.use(cors());
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With");
+  res.header("Access-Control-Allow-Methods", "GET, PATCH, POST");
+  next();
+})
+
 
 // output router
 const outputRouter = require("./routes/outputRouter");

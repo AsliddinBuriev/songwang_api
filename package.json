@@ -16,7 +16,8 @@
     "qrcode": "^1.4.4"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "nodemon server.js",
+    "start:prod": "SET NODE_ENV=production&&nodemon server.js"
   },
   "engines": {
     "node": "14.15.0"

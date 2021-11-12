@@ -16,13 +16,13 @@ exports.getInputHistory = catchAsyncErr(async (req, res, next) => {
   //make customized sql query string out of req.query
   let query = '';
   if (!from && !to && !driver_name) {
-    query += `where enter_date = TO_DATE('${formatDate(Date.now())}','dd-MON-yy')`
+    query += `WHERE enter_date = TO_DATE('${formatDate(Date.now())}','dd-MON-yy')`
   } else {
-    query += `where enter_date >= TO_DATE('${formatDate(from)}','dd-MON-yy') and enter_date <= TO_DATE('${formatDate(to)}','dd-MON-yy') and driver_name = '${driver_name}'`
+    query += `WHERE enter_date >= TO_DATE('${formatDate(from)}','dd-MON-yy') AND enter_date <= TO_DATE('${formatDate(to)}','dd-MON-yy') AND driver_name = '${driver_name}'`
   }
   const db = await connection;
-  const result = await db.execute(`select driver_name, phone_number, enter_date
-  from input ${query}`);
+  const result = await db.execute(`SELECT driver_name, phone_number, enter_date
+  FROM input ${query}`);
 
   //send response 
   res.status(200).json({

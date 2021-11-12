@@ -18,7 +18,6 @@ app.use((req, res, next) => {
   next()
 })
 
-
 // output router
 const outputRouter = require("./routes/outputRouter");
 app.use("/api/v1/output", outputRouter);
@@ -35,12 +34,12 @@ app.use("/api/v1/input", inputRouter);
 const inputHistoryRouter = require('./routes/inputHistoryRouter');
 app.use("/api/v1/input_history", inputHistoryRouter)
 
+//wrong route
 app.all('*', (req, res, next) => {
-  next(new AppError('Cannot find your requested url on this server!', 404));
+  next(new AppError('이 서버에서 요청한 URL을 찾을 수 없습니다!', 404));
 })
 
-//error handling middleware
-
+//global error handler
 app.use(globalErrorHandler)
 
 module.exports = app;

@@ -17,11 +17,14 @@
   },
   "scripts": {
     "start": "nodemon server.js",
-    "start:prod": "SET NODE_ENV=production&&nodemon server.js"
+    "start:prod": "cross-env NODE_ENV=production nodemon ./server.js"
   },
   "engines": {
     "node": "14.15.0"
   },
   "author": "Asliddin Buriev",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
 }

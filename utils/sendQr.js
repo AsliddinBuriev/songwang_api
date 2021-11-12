@@ -38,9 +38,9 @@ const sendQr = async (transactionLink, transaction_id, next, phone_num) => {
     // });
 
     // d. if(!err) => delete saved file and commit chages 
-    if (result) {
-      return true
-    }
+    // if (result) {
+    return true
+    // }
   } catch (err) {
     // console.log(err);
     next(err)

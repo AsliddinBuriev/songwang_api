@@ -15,7 +15,7 @@ const sendProdErr = (err, res) => {
       message: err.message
     })
   } else {
-    console.log(err);
+    // console.log(err);
     res.status(500).json({
       status: 'error',
       message: 'Something went very wrong!'
@@ -43,17 +43,17 @@ const oracleTooLongValue = (err) => {
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
-  console.log(err);
   if (process.env.NODE_ENV === 'development') {
     sendDevErr(err, res)
   } else if (process.env.NODE_ENV === 'production') {
-    let error = { ...err };
+    let error = Object.create(err)
     //notEnoughBalance error #coolsms-node-sdk
     if (err.name === "StatusCodeError") error = coolsmsErr(err);
     //oracle invalit number error
     if (err.errorNum === 1722) error = oracleInvalidNumber(err);
     //oracle too long value 
     if (err.errorNum === 12899) error = oracleTooLongValue(err);
+
     sendProdErr(error, res);
   }
 }

@@ -1,3 +1,4 @@
+const qr = require("qrcode");
 const connection = require("../models/configdb");
 const catchAsyncErr = require('./../utils/catchAsyncErr');
 const AppError = require("../utils/appError");

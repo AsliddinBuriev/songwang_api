@@ -29,7 +29,7 @@ const coolsmsErr = (err) => {
 }
 //oracle invalit number error
 const oracleInvalidNumber = (err) => {
-  const message = '수량, 중량 및 볼륨 값은 숫자로 입력해야 합니다!';
+  const message = '수량, 중량 및 볼륨 값은 숫자로 입력해야 해 주세요!';
   return new AppError(message, 400)
 }
 //oracle too long value 

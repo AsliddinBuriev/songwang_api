@@ -1,5 +1,5 @@
 const qr = require("qrcode");
-const connection = require("../models/configdb");
+const Oracledb = require('oracledb')
 const catchAsyncErr = require('./../utils/catchAsyncErr');
 const AppError = require("../utils/appError");
 const sendQr = require("../utils/sendQr")
@@ -30,10 +30,12 @@ exports.insertInput = catchAsyncErr(async (req, res, next) => {
   const insert = `INSERT INTO input 
   VALUES(
     :transaction_id, :enter_date, :driver_name, :phone_num, 
-    :car_num,:forwarder, :destination_port, :sonmyong, :booking_num,:departure_date, :company_name, :quantity, :package,:weight, :volume
+    :car_num,:forwarder, :destination_port, :sonmyong, 
+    :booking_num,:departure_date, :company_name, :quantity,
+     :package,:weight, :volume
   )`
   // c. save transaction into input table
-  const db = await connection;
+  const db = await Oracledb.getConnection();
   await db.executeMany(insert, binds, { autoCommit: false });
 
   //2.send qr code to phone_number

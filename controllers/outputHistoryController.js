@@ -6,6 +6,7 @@ const formatDate = (date) => {
   const options = { year: 'numeric', month: 'short', day: 'numeric' };
   const standartDate = new Date(date);
   const format = standartDate.toLocaleString('en-GB', options).split(' ');
+  console.log(format);
   return `${format[0].padStart(2, "0")}-${format[1].toUpperCase()}-${format[2]}`
 }
 
@@ -15,9 +16,10 @@ exports.getOutputHistory = catchAsyncErr(async (req, res, next) => {
 
   //1.History search
   //a. make custom query string
+
   let query = ''
   if (!from && !to && !driver_name) {
-    query += `WHERE dt = TO_DATE('${formatDate(Date.now())}','dd-MON-yy')`
+    query += `WHERE dt >= TO_DATE('${formatDate(Date.now())}','dd-MON-yy')`
   } else {
     query += `WHERE dt >= TO_DATE('${formatDate(from)}','dd-MON-yy') 
     AND dt <= TO_DATE('${formatDate(to)}','dd-MON-yy') 
@@ -27,7 +29,8 @@ exports.getOutputHistory = catchAsyncErr(async (req, res, next) => {
   const db = await connection;
   const result = await db.execute(`
   SELECT driver_name, phone_num, dt
-  FROM output_history ${query}`);
+  FROM output_history ${query}
+  ORDER BY dt DESC`);
 
   //2.Send response 
   res.status(200).json({

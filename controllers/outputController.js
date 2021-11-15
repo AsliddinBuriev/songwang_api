@@ -1,5 +1,6 @@
 const qr = require("qrcode");
-const connection = require("../models/configdb");
+// const connection = require("../models/configdb");
+const oracle = require('oracledb')
 const catchAsyncErr = require('./../utils/catchAsyncErr');
 const AppError = require("../utils/appError");
 const sendQr = require("../utils/sendQr")
@@ -8,7 +9,7 @@ const sendQr = require("../utils/sendQr")
 exports.getOutput = catchAsyncErr(async (req, res, next) => {
   const { bl_num } = { ...req.query };
   //query output table 
-  const db = await connection;
+  const db = await oracle.getConnection();
   const data = await db.execute(
     `SELECT bl_num, company_name,quantity, unit 
     from output 
@@ -22,8 +23,8 @@ exports.getOutput = catchAsyncErr(async (req, res, next) => {
 })
 
 /*******  PATCH REQUEST *******/
-exports.updateOutput = async (req, res, next) => {
-  const db = await connection;
+exports.updateOutput = catchAsyncErr(async (req, res, next) => {
+  const db = await oracle.getConnection();
   //destruct data req.body
   const {
     bl_num, company_name, quantity, unit, driver_name, phone_num, car_num
@@ -75,14 +76,14 @@ exports.updateOutput = async (req, res, next) => {
   //4.if qrcode is sent
   if (result) {
     //a.commit changes to database
-    db.commit();
+    await db.commit();
     //b.send response 
     res.status(200).json({
       status: 'success',
       message: '요청이 완료되었습니다!'
     })
   }
-}
+})
 /*******  GET A TRANSACTION *******/
 exports.getTransaction = catchAsyncErr(async (req, res, next) => {
   //1. Make qr code url

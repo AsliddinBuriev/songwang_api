@@ -9,7 +9,9 @@ exports.insertInput = catchAsyncErr(async (req, res, next) => {
   req.body.departure_date = new Date(req.body.departure_date)
   //destructure data req.body
   const {
-    driver_name, phone_num, car_num, forwarder, destination_port, sonmyong, booking_num, departure_date, company_name, quantity, package, weight, volume
+    driver_name, phone_num, car_num, forwarder,
+    destination_port, sonmyong, booking_num, departure_date,
+    company_name, quantity, package, weight, volume
   } = { ...req.body };
 
   //generate random transaction_id
@@ -23,7 +25,10 @@ exports.insertInput = catchAsyncErr(async (req, res, next) => {
   for (let i = 0; i < company_name.length; i++) {
     binds.push(
       {
-        transaction_id, enter_date, driver_name, phone_num, car_num, forwarder, destination_port, sonmyong, booking_num, departure_date, company_name: company_name[i], quantity: quantity[i], package: package[i], weight: weight[i], volume: volume[i]
+        transaction_id, enter_date, driver_name, phone_num, car_num,
+        forwarder, destination_port, sonmyong, booking_num, departure_date,
+        company_name: company_name[i], quantity: quantity[i],
+        package: package[i], weight: weight[i], volume: volume[i]
       })
   }
   // b.make sql insert string

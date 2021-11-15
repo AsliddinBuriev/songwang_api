@@ -42,8 +42,8 @@ const sendQr = async (transactionLink, transaction_id, next, phone_num) => {
     return true
     // }
   } catch (err) {
-    // console.log(err);
     next(err)
+    return false
   } finally {
     fs.unlinkSync(`${__dirname}/qr_imgs/${transaction_id}.jpeg`);
   }

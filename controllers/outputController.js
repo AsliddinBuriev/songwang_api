@@ -1,6 +1,6 @@
 const qr = require("qrcode");
 // const connection = require("../models/configdb");
-const oracle = require('oracledb')
+const Oracle = require('oracledb')
 const catchAsyncErr = require('./../utils/catchAsyncErr');
 const AppError = require("../utils/appError");
 const sendQr = require("../utils/sendQr")
@@ -9,12 +9,12 @@ const sendQr = require("../utils/sendQr")
 exports.getOutput = catchAsyncErr(async (req, res, next) => {
   const { bl_num } = { ...req.query };
   //query output table 
-  const db = await oracle.getConnection();
+  const db = await Oracle.getConnection();
   const data = await db.execute(
     `SELECT bl_num, company_name,quantity, unit 
     from output 
     where quantity > 0 and bl_num = '${bl_num}'`);
-
+  await db.close();
   //send one product data
   res.status(200).json({
     mstatus: 'success',
@@ -24,7 +24,7 @@ exports.getOutput = catchAsyncErr(async (req, res, next) => {
 
 /*******  PATCH REQUEST *******/
 exports.updateOutput = catchAsyncErr(async (req, res, next) => {
-  const db = await oracle.getConnection();
+  const db = await Oracle.getConnection();
   //destruct data req.body
   const {
     bl_num, company_name, quantity, unit, driver_name, phone_num, car_num
@@ -46,6 +46,7 @@ exports.updateOutput = catchAsyncErr(async (req, res, next) => {
 
     //b.if not OK send error message
     if (doesExist.rows.length === 0) {
+      await db.close()
       return next(new AppError('생산 정보를 잘못 입력했습니다. 다시 시도하십시오!', 400));
     }
 
@@ -77,11 +78,14 @@ exports.updateOutput = catchAsyncErr(async (req, res, next) => {
   if (result) {
     //a.commit changes to database
     await db.commit();
+    await db.close();
     //b.send response 
     res.status(200).json({
       status: 'success',
       message: '요청이 완료되었습니다!'
     })
+  } else {
+    await db.close();
   }
 })
 /*******  GET A TRANSACTION *******/

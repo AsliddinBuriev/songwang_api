@@ -11,7 +11,10 @@ const db = async () => {
   await Oracledb.createPool({
     user: process.env.DBUSER,
     password: process.env.DBPASSWORD,
-    connectionString: process.env.DBCONNECTIONSTR
+    connectionString: process.env.DBCONNECTIONSTR,
+    poolIncrement: 0,
+    poolMax: 10,
+    poolMin: 10,
   })
 }
 db()
@@ -23,6 +26,9 @@ const server = app.listen(process.env.PORT || 3000, () => {
 process.on('unhandledRejection', err => {
   console.log(err);
   server.close(() => {
-    process.exit(1)
+    Oracledb.getPool().close(10, (err) => {
+      console.log(err);
+    })
+    process.exit(1);
   })
 })

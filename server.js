@@ -8,18 +8,22 @@ const path = require('path')
 Oracledb.outFormat = Oracledb.OUT_FORMAT_OBJECT;
 // Oracledb.initOracleClient({ libDir: '/opt/oracle/instantclient_21_3/' });
 const db = async () => {
-  await Oracledb.createPool({
+  const pool = await Oracledb.createPool({
     user: process.env.DBUSER,
     password: process.env.DBPASSWORD,
     connectionString: process.env.DBCONNECTIONSTR,
+    enableStatistics: true,
+    poolAlias: 'pool',
     poolIncrement: 0,
-    poolMax: 10,
-    poolMin: 10,
+    poolMax: 2,
+    poolMin: 2,
   })
+  // pool.logStatistics()
 }
-db()
+
 
 const server = app.listen(process.env.PORT || 3000, () => {
+  db()
   console.log("the server is running on server 3000");
 });
 

@@ -1,7 +1,7 @@
 const qr = require("qrcode");
 const pngToJpeg = require("png-to-jpeg");
 const { msg, config } = require("coolsms-node-sdk");
-const fs = require("fs");
+const fs = require("fs/promises");
 const path = require("path");
 const AppError = require("./appError");
 
@@ -14,7 +14,7 @@ const sendQr = async (transactionLink, transaction_id, next, phone_num) => {
     //b. generate jpeg file
     const buffer = Buffer.from(qrImageLink.split(/,\s*/)[1], "base64");
     const qrImage = await pngToJpeg({ quality: 90 })(buffer);
-    fs.writeFileSync(`${__dirname}/qr_imgs/${transaction_id}.jpeg`, qrImage);
+    await fs.writeFile(`${__dirname}/qr_imgs/${transaction_id}.jpeg`, qrImage);
 
     //c. send qr code
     //coolsms-node-sdk config
@@ -42,10 +42,10 @@ const sendQr = async (transactionLink, transaction_id, next, phone_num) => {
     return true
     // }
   } catch (err) {
+
     next(err)
-    return false
   } finally {
-    fs.unlinkSync(`${__dirname}/qr_imgs/${transaction_id}.jpeg`);
+    await fs.unlink(`${__dirname}/qr_imgs/${transaction_id}.jpeg`);
   }
 }
 module.exports = sendQr

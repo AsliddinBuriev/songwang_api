@@ -10,6 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(__dirname + '/public'));
 // app.use(cors());
+// app.options('*', cors());
 //add changes to test pipeline
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");

@@ -114,7 +114,7 @@ const sampleInputData = {
   booking_num: 'booking_num',//(부킹넘버)
   departure_date: '01-11-2021',
   com_name: 'YUJIN INTERNATIONAL',//(화주명(상호))    
-  amount: 500,//(입고수량)
+  quantity: 500,//(입고수량)
   package: 'box',//(포장규격)
   weight: 100, //(중량(kg)
   volume: 10, //(용적(cbm)
